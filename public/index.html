@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎙️ Walkie-Talkie Web App</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <h1>🎙️ Walkie-Talkie</h1>
+            <div class="status-bar">
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span id="statusText">Connecting...</span>
+                </div>
+                <div class="client-count">
+                    <span>👥</span>
+                    <span id="clientCount">0</span>
+                    <span>connected</span>
+                </div>
+            </div>
+        </header>        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Push to Talk Section -->
+            <div class="talk-section">
+                <div class="talk-button-container">
+                    <button id="talkButton" class="talk-button" disabled>
+                        <div class="button-content">
+                            <div class="mic-icon">🎤</div>
+                            <div class="button-text">Hold to Talk</div>
+                        </div>
+                    </button>
+                </div>
+                
+                <!-- Recording Status -->
+                <div id="recordingStatus" class="recording-status hidden">
+                    <div class="recording-indicator">
+                        <div class="pulse-ring"></div>
+                        <div class="pulse-dot"></div>
+                    </div>
+                    <span>Recording...</span>
+                </div>
+
+                <!-- Volume Level Indicator -->
+                <div class="volume-indicator">
+                    <div class="volume-label">📊 Audio Level:</div>
+                    <div class="volume-bar">
+                        <div id="volumeLevel" class="volume-fill"></div>
+                    </div>                </div>
+            </div>
+        </main>        <!-- Instructions -->
+        <footer class="instructions">
+            <h3>📋 How to Use</h3>
+            <ol>
+                <li>🔗 Share this URL with others on your network</li>
+                <li>🎤 Allow microphone access when prompted</li>
+                <li>📱 Hold the "Hold to Talk" button and speak</li>
+                <li>🔊 Release the button to stop recording</li>
+                <li>👂 Listen for incoming messages from other users</li>
+            </ol>
+            
+            <!-- Network Access Notice -->
+            <div class="network-notice" id="networkNotice" style="margin-top: 15px; padding: 10px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; display: none;">
+                <strong>🔒 Network Access Notice:</strong><br>
+                If accessing from network devices (not localhost), you may need HTTPS for microphone access.
+                <br><strong>Solution:</strong> Use <code>https://</code> instead of <code>http://</code> in the URL.
+            </div>
+        </footer>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="playbackAudio" preload="auto"></audio>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
