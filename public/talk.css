@@ -1,6 +1,6 @@
 /**
- * Walkie-Talkie Web App Styles
- * Modern, clean UI with responsive design
+ * Talk Page Styles - Walkie-Talkie Interface
+ * Modern, clean UI with responsive design for voice communication
  */
 
 /* Reset and Base Styles */
@@ -19,7 +19,7 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
     padding: 20px;
     min-height: 100vh;
@@ -37,11 +37,51 @@ body {
     backdrop-filter: blur(10px);
 }
 
-.header h1 {
+.room-info {
     text-align: center;
-    font-size: 2.5rem;
-    color: #4a5568;
     margin-bottom: 15px;
+}
+
+.room-info h1 {
+    font-size: 2.2rem;
+    color: #4a5568;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.room-details {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.room-pin {
+    background: rgba(102, 126, 234, 0.1);
+    color: #4a5568;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: 600;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.leave-room-btn {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.leave-room-btn:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
 .status-bar {
@@ -194,6 +234,7 @@ body {
 /* Volume Indicator */
 .volume-indicator {
     margin-top: 20px;
+    margin-bottom: 30px;
 }
 
 .volume-label {
@@ -218,6 +259,58 @@ body {
     border-radius: 4px;
 }
 
+/* Active Speakers */
+.active-speakers {
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.active-speakers h3 {
+    color: #4a5568;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.speakers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.no-speakers {
+    color: #9ca3af;
+    font-style: italic;
+    text-align: center;
+    padding: 10px;
+}
+
+.speaker-item {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px 15px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.speaker-item.talking {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.speaker-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    animation: pulse-dot 1s infinite;
+}
+
 /* Instructions */
 .instructions {
     background: rgba(255, 255, 255, 0.95);
@@ -238,7 +331,7 @@ body {
 
 .instructions-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
     margin-bottom: 20px;
 }
@@ -286,230 +379,19 @@ body {
     font-size: 0.95rem;
 }
 
-.instructions ol {
-    padding-left: 20px;
-}
-
-.instructions li {
-    margin-bottom: 8px;
-    color: #374151;
-}
-
-/* Room Management Section */
-.room-section {
-    margin-bottom: 30px;
-}
-
-.room-intro {
-    text-align: center;
-    margin-bottom: 30px;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 15px;
-    padding: 25px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
-}
-
-.room-intro h2 {
-    color: #4a5568;
-    font-size: 1.8rem;
-    margin-bottom: 10px;
-    font-weight: 700;
-}
-
-.room-intro p {
-    color: #6b7280;
-    font-size: 1.1rem;
-    line-height: 1.6;
-}
-
-.room-container {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    align-items: stretch;
-    flex-wrap: wrap;
-    position: relative;
-}
-
-.room-divider {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-width: 60px;
-    margin: 0 10px;
-}
-
-.divider-line {
-    width: 2px;
-    flex: 1;
-    background: linear-gradient(to bottom, transparent, #cbd5e1, transparent);
-    min-height: 50px;
-}
-
-.divider-text {
-    background: rgba(255, 255, 255, 0.95);
-    color: #9ca3af;
-    font-weight: 600;
-    padding: 8px 12px;
-    border-radius: 20px;
-    border: 2px solid #e5e7eb;
-    margin: 10px 0;
-    font-size: 0.9rem;
-}
-
-.room-form {
-    background: rgba(255,255,255,0.97);
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.15);
-    padding: 30px 28px;
-    min-width: 280px;
-    max-width: 350px;
-    flex: 1 1 280px;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.room-form:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 50px rgba(102, 126, 234, 0.2);
-}
-
-.form-header {
-    text-align: center;
-    margin-bottom: 25px;
-}
-
-.form-icon {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-    display: block;
-}
-
-.form-header h3 {
-    color: #4a5568;
-    margin-bottom: 5px;
-    font-size: 1.4rem;
-    font-weight: 700;
-}
-
-.form-header p {
-    color: #6b7280;
-    font-size: 0.95rem;
-}
-
-.input-group {
-    margin-bottom: 20px;
-}
-
-.input-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #374151;
-    font-size: 0.95rem;
-}
-
-.input-group input[type="text"],
-.input-group input[type="password"] {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    font-size: 1rem;
-    background: #f9fafb;
-    transition: all 0.3s ease;
-    font-family: inherit;
-}
-
-.input-group input:focus {
-    border-color: #667eea;
-    outline: none;
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.input-group input:valid {
-    border-color: #10b981;
-}
-
-.input-group input:invalid:not(:placeholder-shown) {
-    border-color: #ef4444;
-}
-
-.input-group input[type="password"] {
-    letter-spacing: 0.1em;
-}
-
-.input-group input::placeholder {
-    color: #9ca3af;
-    font-style: italic;
-}
-
-.input-group small {
-    display: block;
-    margin-top: 5px;
-    color: #9ca3af;
-    font-size: 0.85rem;
-    line-height: 1.4;
-}
-
-.room-action-btn {
-    width: 100%;
-    border: none;
-    border-radius: 12px;
-    padding: 14px 20px;
-    font-size: 1.05rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 10px;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.create-btn {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
-}
-
-.create-btn:hover {
-    background: linear-gradient(135deg, #059669, #047857);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
-}
-
-.join-btn {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-}
-
-.join-btn:hover {
-    background: linear-gradient(135deg, #5a67d8, #6b46c1);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
-}
-
-.btn-icon {
-    font-size: 1.1rem;
-}
-
+/* Responsive Design */
 @media (max-width: 768px) {
     .container {
         padding: 15px;
     }
     
-    .header h1 {
-        font-size: 2rem;
+    .room-info h1 {
+        font-size: 1.8rem;
+    }
+    
+    .room-details {
+        flex-direction: column;
+        gap: 10px;
     }
     
     .talk-button {
@@ -526,52 +408,6 @@ body {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
-    }
-
-    .room-container {
-        flex-direction: column;
-        gap: 15px;
-        align-items: stretch;
-    }
-    
-    .room-divider {
-        flex-direction: row;
-        min-width: auto;
-        margin: 0;
-        padding: 0 20px;
-    }
-    
-    .divider-line {
-        width: auto;
-        flex: 1;
-        height: 2px;
-        min-height: auto;
-        background: linear-gradient(to right, transparent, #cbd5e1, transparent);
-    }
-    
-    .divider-text {
-        margin: 0 15px;
-    }
-    
-    .room-form {
-        max-width: 100%;
-        min-width: auto;
-    }
-    
-    .room-intro h2 {
-        font-size: 1.5rem;
-    }
-    
-    .room-intro p {
-        font-size: 1rem;
-    }
-    
-    .form-icon {
-        font-size: 2rem;
-    }
-    
-    .form-header h3 {
-        font-size: 1.2rem;
     }
     
     .instructions-grid {
@@ -610,31 +446,12 @@ body {
         font-size: 2rem;
     }
     
-    .room-form {
+    .room-info h1 {
+        font-size: 1.5rem;
+    }
+    
+    .instructions {
         padding: 20px;
-    }
-    
-    .room-intro {
-        padding: 20px;
-    }
-    
-    .room-intro h2 {
-        font-size: 1.3rem;
-    }
-    
-    .form-header h3 {
-        font-size: 1.1rem;
-    }
-    
-    .input-group input[type="text"],
-    .input-group input[type="password"] {
-        padding: 10px 14px;
-        font-size: 0.95rem;
-    }
-    
-    .room-action-btn {
-        padding: 12px 16px;
-        font-size: 1rem;
     }
 }
 

@@ -26,7 +26,9 @@ class WalkieTalkieApp {
             statusText: document.getElementById('statusText'),
             clientCount: document.getElementById('clientCount'),
             volumeLevel: document.getElementById('volumeLevel'),
-            playbackAudio: document.getElementById('playbackAudio')
+            playbackAudio: document.getElementById('playbackAudio'),
+            createRoomForm: document.getElementById('createRoomForm'),
+            joinRoomForm: document.getElementById('joinRoomForm'),
         };
         
         // Configuration
@@ -161,6 +163,34 @@ class WalkieTalkieApp {
                 this.stopRecording(e);
             }
         });
+        
+        // Room form event listeners
+        if (this.elements.createRoomForm) {
+            this.elements.createRoomForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const roomName = this.elements.createRoomForm.createRoomName.value.trim();
+                const pin = this.elements.createRoomForm.createRoomPin.value.trim();
+                if (!roomName || !/^\d{4,6}$/.test(pin)) {
+                    alert('Please enter a valid room name and a 4–6 digit PIN.');
+                    return;
+                }
+                // TODO: Implement create room logic
+                alert(`Room '${roomName}' created with PIN ${pin}`);
+            });
+        }
+        if (this.elements.joinRoomForm) {
+            this.elements.joinRoomForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const roomName = this.elements.joinRoomForm.joinRoomName.value.trim();
+                const pin = this.elements.joinRoomForm.joinRoomPin.value.trim();
+                if (!roomName || !/^\d{4,6}$/.test(pin)) {
+                    alert('Please enter a valid room name and a 4–6 digit PIN.');
+                    return;
+                }
+                // TODO: Implement join room logic
+                alert(`Joining room '${roomName}' with PIN ${pin}`);
+            });
+        }
     }    /**
      * Request microphone access with better error handling
      */

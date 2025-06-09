@@ -53,8 +53,30 @@ const io = socketIo(server, {
 
 const PORT = process.env.PORT || 3000;
 
+// Room management
+const rooms = new Map(); // roomName -> { pin, clients: Set() }
+
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Debug endpoint to list active rooms
+app.get('/api/rooms', (req, res) => {
+    const roomList = [];
+    rooms.forEach((room, roomName) => {
+        roomList.push({
+            name: roomName,
+            clientCount: room.clients.size,
+            createdAt: room.createdAt,
+            hasGracePeriod: room.creatorGracePeriod || false,
+            isTemporary: room.isTemporary || false
+        });
+    });
+    res.json({
+        totalRooms: rooms.size,
+        rooms: roomList,
+        timestamp: new Date().toISOString()
+    });
+});
 
 // Store connected clients information
 const connectedClients = new Map();
@@ -64,28 +86,188 @@ const connectedClients = new Map();
  */
 io.on('connection', (socket) => {
     console.log(`📱 New client connected: ${socket.id}`);
-    
-    // Store client information
+      // Store client information
     connectedClients.set(socket.id, {
         id: socket.id,
-        connectedAt: new Date()
+        connectedAt: new Date(),
+        currentRoom: null
     });
 
     // Send current client count to all clients
-    io.emit('client-count', connectedClients.size);
+    io.emit('client-count', connectedClients.size);    /**
+     * Handle room creation
+     */
+    socket.on('create-room', (data) => {
+        const { roomName, pin } = data;
+        console.log(`🏠 Creating room "${roomName}" with PIN ${pin} by ${socket.id}`);
+        
+        // Check if room already exists
+        if (rooms.has(roomName)) {
+            console.log(`❌ Room "${roomName}" already exists`);
+            socket.emit('room-error', {
+                action: 'create',
+                message: `Room "${roomName}" already exists. Please choose a different name.`
+            });
+            return;
+        }
+        
+        // Create new room with extended lifetime for creator to join
+        rooms.set(roomName, {
+            pin: pin,
+            clients: new Set(),
+            createdAt: new Date(),
+            createdBy: socket.id,
+            isTemporary: true, // Mark as temporary until someone joins
+            creatorGracePeriod: true // Give creator extra time to join
+        });
+        
+        // Set a grace period for the creator to join (2 minutes)
+        setTimeout(() => {
+            const room = rooms.get(roomName);
+            if (room && room.clients.size === 0 && room.creatorGracePeriod) {
+                console.log(`⏰ Grace period expired for room "${roomName}", deleting empty room`);
+                rooms.delete(roomName);
+            }
+        }, 120000); // 2 minutes grace period
+        
+        console.log(`✅ Room "${roomName}" created successfully with 2-minute grace period`);
+        socket.emit('room-created', {
+            roomName: roomName,
+            pin: pin
+        });
+    });    /**
+     * Handle room joining
+     */
+    socket.on('join-room', (data) => {
+        const { roomName, pin } = data;
+        console.log(`🚪 Client ${socket.id} attempting to join room "${roomName}"`);
+        
+        // Check if room exists
+        if (!rooms.has(roomName)) {
+            console.log(`❌ Room "${roomName}" does not exist`);
+            socket.emit('room-error', {
+                action: 'join',
+                message: `Room "${roomName}" not found. Please check the room name.`
+            });
+            return;
+        }
+        
+        const room = rooms.get(roomName);
+        
+        // Check PIN
+        if (room.pin !== pin) {
+            console.log(`❌ Wrong PIN for room "${roomName}"`);
+            socket.emit('room-error', {
+                action: 'join',
+                message: 'Incorrect PIN. Please check your credentials.'
+            });
+            return;
+        }
+        
+        // Add client to room
+        room.clients.add(socket.id);
+        
+        // Clear grace period flags when someone joins
+        if (room.creatorGracePeriod) {
+            room.creatorGracePeriod = false;
+            room.isTemporary = false;
+            console.log(`🏠 Room "${roomName}" is now active (grace period cleared)`);
+        }
+        
+        // Update client info
+        const clientInfo = connectedClients.get(socket.id);
+        if (clientInfo) {
+            clientInfo.currentRoom = roomName;
+        }
+        
+        console.log(`✅ Client ${socket.id} joined room "${roomName}" (${room.clients.size} total)`);
+        socket.emit('room-joined', {
+            roomName: roomName,
+            pin: pin,
+            clientCount: room.clients.size
+        });
+        
+        // Notify other clients in the room
+        room.clients.forEach(clientId => {
+            if (clientId !== socket.id) {
+                const clientSocket = io.sockets.sockets.get(clientId);
+                if (clientSocket) {
+                    clientSocket.emit('room-update', {
+                        type: 'user-joined',
+                        roomName: roomName,
+                        clientCount: room.clients.size
+                    });
+                }
+            }
+        });
+    });
 
     /**
-     * Handle incoming audio data from clients
-     * Broadcasts the audio to all other connected clients
+     * Handle leaving room
      */
-    socket.on('audio-data', (audioBlob) => {
-        console.log(`🎤 Audio received from ${socket.id}, broadcasting to others...`);
+    socket.on('leave-room', () => {
+        const clientInfo = connectedClients.get(socket.id);
+        if (clientInfo && clientInfo.currentRoom) {
+            const roomName = clientInfo.currentRoom;
+            console.log(`🚪 Client ${socket.id} leaving room "${roomName}"`);
+            
+            const room = rooms.get(roomName);
+            if (room) {
+                room.clients.delete(socket.id);
+                
+                // If room is empty, delete it
+                if (room.clients.size === 0) {
+                    rooms.delete(roomName);
+                    console.log(`🗑️ Room "${roomName}" deleted (empty)`);
+                } else {
+                    // Notify remaining clients
+                    room.clients.forEach(clientId => {
+                        const clientSocket = io.sockets.sockets.get(clientId);
+                        if (clientSocket) {
+                            clientSocket.emit('room-update', {
+                                type: 'user-left',
+                                roomName: roomName,
+                                clientCount: room.clients.size
+                            });
+                        }
+                    });
+                }
+            }
+            
+            clientInfo.currentRoom = null;
+        }
+    });    /**
+     * Handle incoming audio data from clients
+     * Broadcasts the audio to all other connected clients in the same room
+     */
+    socket.on('audio-data', (data) => {
+        const clientInfo = connectedClients.get(socket.id);
+        if (!clientInfo || !clientInfo.currentRoom) {
+            console.log(`⚠️ Audio received from ${socket.id} but client not in any room`);
+            return;
+        }
         
-        // Broadcast audio to all clients except the sender
-        socket.broadcast.emit('audio-data', {
-            audio: audioBlob,
-            senderId: socket.id,
-            timestamp: Date.now()
+        const roomName = clientInfo.currentRoom;
+        const room = rooms.get(roomName);
+        if (!room) {
+            console.log(`⚠️ Audio received from ${socket.id} but room "${roomName}" not found`);
+            return;
+        }
+        
+        console.log(`🎤 Audio received from ${socket.id} in room "${roomName}", broadcasting to ${room.clients.size - 1} others...`);
+        
+        // Broadcast audio to all clients in the same room except the sender
+        room.clients.forEach(clientId => {
+            if (clientId !== socket.id) {
+                const clientSocket = io.sockets.sockets.get(clientId);
+                if (clientSocket) {
+                    clientSocket.emit('audio-data', {
+                        audio: data.audio,
+                        senderId: socket.id,
+                        timestamp: Date.now()
+                    });
+                }
+            }
         });
     });
 
@@ -100,13 +282,54 @@ io.on('connection', (socket) => {
             senderId: socket.id,
             isTalking: status.isTalking
         });
-    });
-
-    /**
+    });    /**
      * Handle client disconnection
      */
     socket.on('disconnect', () => {
         console.log(`📴 Client disconnected: ${socket.id}`);
+        
+        const clientInfo = connectedClients.get(socket.id);
+        
+        // Remove client from their room if they were in one
+        if (clientInfo && clientInfo.currentRoom) {
+            const roomName = clientInfo.currentRoom;
+            const room = rooms.get(roomName);
+            if (room) {
+                room.clients.delete(socket.id);
+                  // If room is empty, mark it for deletion after a delay
+                if (room.clients.size === 0) {
+                    // If room still has grace period, don't set timeout (already has one)
+                    if (!room.creatorGracePeriod) {
+                        console.log(`⏰ Room "${roomName}" is empty, will be deleted in 30 seconds if no one joins`);
+                        
+                        // Delete room after 30 seconds if still empty
+                        setTimeout(() => {
+                            const currentRoom = rooms.get(roomName);
+                            if (currentRoom && currentRoom.clients.size === 0) {
+                                rooms.delete(roomName);
+                                console.log(`🗑️ Room "${roomName}" deleted (empty timeout)`);
+                            }
+                        }, 30000); // 30 seconds
+                    } else {
+                        console.log(`⏰ Room "${roomName}" is empty but still within grace period`);
+                    }
+                } else {
+                    console.log(`🚪 Client ${socket.id} removed from room "${roomName}" (${room.clients.size} remaining)`);
+                    
+                    // Notify remaining clients in the room
+                    room.clients.forEach(clientId => {
+                        const clientSocket = io.sockets.sockets.get(clientId);
+                        if (clientSocket) {
+                            clientSocket.emit('room-update', {
+                                type: 'user-disconnected',
+                                roomName: roomName,
+                                clientCount: room.clients.size
+                            });
+                        }
+                    });
+                }
+            }
+        }
         
         // Remove client from connected clients map
         connectedClients.delete(socket.id);

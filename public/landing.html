@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎙️ PushTalk - Walkie-Talkie Rooms</title>
+    <link rel="stylesheet" href="landing.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <h1>🎙️ PushTalk</h1>
+            <p>Create or join a voice communication room to start talking with your team instantly</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Room Management Section -->
+            <section class="room-section">
+                <div class="room-intro">
+                    <h2>🚀 Get Started</h2>
+                    <p>Create a new room to start talking with your team, or join an existing room with your credentials.</p>
+                </div>
+                
+                <div class="room-container">
+                    <div class="room-form create-room">
+                        <div class="form-header">
+                            <div class="form-icon">➕</div>
+                            <h3>Create New Room</h3>
+                            <p>Start a new conversation</p>
+                        </div>
+                        <form id="createRoomForm" autocomplete="off">
+                            <div class="input-group">
+                                <label for="createRoomName">Room Name</label>
+                                <input type="text" id="createRoomName" name="createRoomName" placeholder="e.g., Team Alpha, Project X" required maxlength="32" />
+                                <small>Choose a unique name for your room</small>
+                            </div>                            <div class="input-group">
+                                <label for="createRoomPin">Security PIN</label>
+                                <input type="text" id="createRoomPin" name="createRoomPin" pattern="\d{4,6}" maxlength="6" minlength="4" placeholder="4-6 digits" required inputmode="numeric" />
+                                <small>4-6 digit numeric code</small>
+                            </div>
+                            <button type="submit" class="room-action-btn create-btn">
+                                <span class="btn-icon">🔑</span>
+                                Create Room
+                            </button>
+                            <div id="createMessage" class="message hidden"></div>
+                        </form>
+                    </div>
+                    
+                    <div class="room-divider">
+                        <div class="divider-line"></div>
+                        <span class="divider-text">OR</span>
+                        <div class="divider-line"></div>
+                    </div>
+                    
+                    <div class="room-form join-room">
+                        <div class="form-header">
+                            <div class="form-icon">🚪</div>
+                            <h3>Join Existing Room</h3>
+                            <p>Enter room credentials to join</p>
+                        </div>
+                        <form id="joinRoomForm" autocomplete="off">
+                            <div class="input-group">
+                                <label for="joinRoomName">Room Name</label>
+                                <input type="text" id="joinRoomName" name="joinRoomName" placeholder="Enter exact room name" required maxlength="32" />
+                                <small>Must match the room creator's name</small>
+                            </div>                            <div class="input-group">
+                                <label for="joinRoomPin">Security PIN</label>
+                                <input type="text" id="joinRoomPin" name="joinRoomPin" pattern="\d{4,6}" maxlength="6" minlength="4" placeholder="4-6 digits" required inputmode="numeric" />
+                                <small>PIN provided by room creator</small>
+                            </div>
+                            <button type="submit" class="room-action-btn join-btn">
+                                <span class="btn-icon">🔓</span>
+                                Join Room
+                            </button>
+                            <div id="joinMessage" class="message hidden"></div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="features-section">
+                <h3>✨ What You'll Get</h3>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🎤</div>
+                        <h4>Push-to-Talk</h4>
+                        <p>Hold button to record and send crystal-clear voice messages instantly</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">⚡</div>
+                        <h4>Real-Time</h4>
+                        <p>Near-instant audio transmission with minimal latency for natural conversations</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📱</div>
+                        <h4>Multi-Device</h4>
+                        <p>Works seamlessly on phones, tablets, and computers on the same network</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🔒</div>
+                        <h4>Secure Rooms</h4>
+                        <p>PIN-protected rooms ensure only authorized team members can join</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="landing.js"></script>
+</body>
+</html>

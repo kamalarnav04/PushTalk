@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎙️ PushTalk - Voice Communication</title>
+    <link rel="stylesheet" href="talk.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <div class="room-info">
+                <h1>🎙️ <span id="roomName">Room Name</span></h1>
+                <div class="room-details">
+                    <span class="room-pin">PIN: <span id="roomPin">****</span></span>
+                    <button id="leaveRoomBtn" class="leave-room-btn">🚪 Leave Room</button>
+                </div>
+            </div>
+            <div class="status-bar">
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span id="statusText">Connecting...</span>
+                </div>
+                <div class="client-count">
+                    <span>👥</span>
+                    <span id="clientCount">0</span>
+                    <span>connected</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Push to Talk Section -->
+            <div class="talk-section">
+                <div class="talk-button-container">
+                    <button id="talkButton" class="talk-button" disabled>
+                        <div class="button-content">
+                            <div class="mic-icon">🎤</div>
+                            <div class="button-text">Hold to Talk</div>
+                        </div>
+                    </button>
+                </div>
+                
+                <!-- Recording Status -->
+                <div id="recordingStatus" class="recording-status hidden">
+                    <div class="recording-indicator">
+                        <div class="pulse-ring"></div>
+                        <div class="pulse-dot"></div>
+                    </div>
+                    <span>Recording...</span>
+                </div>
+
+                <!-- Volume Level Indicator -->
+                <div class="volume-indicator">
+                    <div class="volume-label">📊 Audio Level:</div>
+                    <div class="volume-bar">
+                        <div id="volumeLevel" class="volume-fill"></div>
+                    </div>
+                </div>
+
+                <!-- Active Speakers -->
+                <div class="active-speakers" id="activeSpeakers">
+                    <h3>🗣️ Active Speakers</h3>
+                    <div class="speakers-list" id="speakersList">
+                        <div class="no-speakers">No one is talking</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Instructions -->
+        <footer class="instructions">
+            <h3>📋 How to Use PushTalk</h3>
+            <div class="instructions-grid">
+                <div class="instruction-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>🎤 Allow Microphone</h4>
+                        <p>Grant microphone access when prompted to enable push-to-talk functionality.</p>
+                    </div>
+                </div>
+                <div class="instruction-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>📱 Push to Talk</h4>
+                        <p>Hold the "Hold to Talk" button while speaking, then release to send your message to all room members.</p>
+                    </div>
+                </div>
+                <div class="instruction-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>⌨️ Keyboard Shortcut</h4>
+                        <p>Use the spacebar as a shortcut for push-to-talk instead of clicking the button.</p>
+                    </div>
+                </div>
+                <div class="instruction-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>👥 Share Room Info</h4>
+                        <p>Share the room name and PIN with your team members so they can join the conversation.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Network Access Notice -->
+            <div class="network-notice" id="networkNotice" style="margin-top: 20px; padding: 15px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; display: none;">
+                <strong>🔒 HTTPS Required:</strong><br>
+                If accessing from network devices (not localhost), you need HTTPS for microphone access.
+                <br><strong>Solution:</strong> Use <code>https://</code> instead of <code>http://</code> in the URL.
+            </div>
+        </footer>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="playbackAudio" preload="auto"></audio>
+
+    <!-- JavaScript -->
+    <script src="talk.js"></script>
+</body>
+</html>
