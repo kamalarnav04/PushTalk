@@ -107,76 +107,44 @@ PushTalk/
 └── Instruction.txt       ← Original build instructions
 ```
 
-## 🛠️ Technical Details & Implementation
+## 🛠️ Technical Details
 
-### Backend (Node.js + Express + Socket.IO)
-- **Express server** serves static files and handles HTTP/HTTPS requests
-- **Socket.IO** manages WebSocket connections for real-time communication
-- **Audio broadcasting** sends audio data from one client to all others
-- **Client management** tracks connected users and connection status
-- **HTTPS Support** automatic HTTPS detection and SSL certificate validation
-- **Network Access Warnings** clear setup instructions in console output
+### Backend
+- **Express + Socket.IO** for real-time WebSocket communication
+- **HTTPS support** with automatic SSL certificate generation
+- **Audio broadcasting** from one client to all connected users
 
-### Frontend (HTML + CSS + JavaScript)
-- **MediaRecorder API** captures audio from the microphone
-- **AudioContext API** monitors volume levels and handles audio processing
-- **Socket.IO client** communicates with the server in real-time
-- **Responsive design** works on desktop and mobile devices
-- **Enhanced Error Handling** detailed error messages with specific solutions
-- **Network Access Notice** alerts for HTTP connections on network devices
+### Frontend
+- **MediaRecorder API** for microphone audio capture
+- **AudioContext API** for volume monitoring
+- **Responsive design** works on desktop and mobile
 
 ### Audio Processing
-- **Format**: WebM with Opus codec for efficient compression
-- **Quality**: 128 kbps audio bitrate with noise suppression
-- **Latency**: Near real-time transmission with minimal delay
-- **Compatibility**: Works across all modern browsers
-
-### Security Features
-- **SSL Certificate Generation**: Automatic self-signed certificate creation
-- **Enhanced Browser Compatibility Detection**: Identifies specific API issues
-- **Secure Context Requirements**: Proper HTTPS enforcement for network access
-- **Error Type Detection**: Specific error handling for:
-  - "HTTPS Required"
-  - "Microphone Denied" 
-  - "No Microphone"
-  - "Not Supported"
+- **WebM/Opus codec** for efficient compression
+- **128 kbps quality** with noise suppression
+- **Near real-time** transmission with minimal latency
 
 ## 📱 How to Use
 
-1. **📡 Connect**: Make sure all devices are on the same Wi-Fi network
-2. **🔗 Share**: Send the app URL to other users
-3. **🎤 Allow**: Grant microphone permission when prompted
-4. **💬 Talk**: Hold the "Hold to Talk" button and speak
-5. **👂 Listen**: Release the button and hear responses from others
-
+1. **Connect** all devices to same Wi-Fi network
+2. **Allow** microphone permission when prompted
+3. **Hold** "Hold to Talk" button and speak
+4. **Release** button to listen for responses
 
 ## 🎯 Use Cases
 
-- **👨‍👩‍👧‍👦 Family Communication**: Talk between rooms in a house
-- **🏗️ Work Sites**: Communicate across construction sites or warehouses
-- **🎮 Gaming**: Voice communication for local multiplayer games
-- **📚 Education**: Interactive classroom communication
-- **🏥 Healthcare**: Secure communication within medical facilities
-- **🎪 Events**: Coordination during events or performances
+- Family communication between rooms
+- Work site coordination
+- Gaming voice chat
+- Classroom interaction
+- Event coordination
 
 ## 🛠️ Development
 
 ### Adding Features
-The modular code structure makes it easy to add new features:
-- **Server logic**: Modify `server/server.js`
-- **UI components**: Update `public/index.html` and `public/styles.css`
-- **Client functionality**: Extend `public/script.js`
-
-### Environment Variables
-- `PORT`: Server port (default: 3000)
-- `NODE_ENV`: Environment mode (development/production)
-
-### Testing
-Test the application with multiple devices:
-1. Start the server on one device
-2. Open the network URL on 2+ other devices
-3. Test audio transmission between devices
-4. Verify connection status and activity logging
+- **Server**: Modify `server/server.js`
+- **UI**: Update `public/index.html` and `public/styles.css`
+- **Client**: Extend `public/script.js`
 
 ## 📄 License
 
