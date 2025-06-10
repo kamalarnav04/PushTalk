@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎙️ PushTalk - Login</title>
+    <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <h1>🎙️ PushTalk</h1>
+            <p>Login or create an account to access voice communication rooms</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Auth Section -->
+            <section class="auth-section">
+                <div class="auth-container">
+                    <!-- Login Form -->
+                    <div class="auth-form login-form" id="loginForm">
+                        <div class="form-header">
+                            <div class="form-icon">👤</div>
+                            <h3>Welcome Back</h3>
+                            <p>Login to your account</p>
+                        </div>
+                        <form id="loginFormElement" autocomplete="off">
+                            <div class="input-group">
+                                <label for="loginEmail">Email</label>
+                                <input type="email" id="loginEmail" name="loginEmail" placeholder="your@email.com" required />
+                                <small>Enter your registered email address</small>
+                            </div>
+                            <div class="input-group">
+                                <label for="loginPassword">Password</label>
+                                <input type="password" id="loginPassword" name="loginPassword" placeholder="Your password" required />
+                                <small>Enter your account password</small>
+                            </div>
+                            <button type="submit" class="auth-action-btn login-btn">
+                                <span class="btn-icon">🔓</span>
+                                Login
+                            </button>
+                            <div id="loginMessage" class="message hidden"></div>
+                        </form>
+                        <div class="auth-switch">
+                            <p>Don't have an account? <a href="#" id="showSignup">Sign up here</a></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Signup Form -->
+                    <div class="auth-form signup-form hidden" id="signupForm">
+                        <div class="form-header">
+                            <div class="form-icon">✨</div>
+                            <h3>Create Account</h3>
+                            <p>Join PushTalk today</p>
+                        </div>
+                        <form id="signupFormElement" autocomplete="off">
+                            <div class="input-group">
+                                <label for="signupUsername">Username</label>
+                                <input type="text" id="signupUsername" name="signupUsername" placeholder="Choose a username" required maxlength="20" />
+                                <small>This will be displayed to other users</small>
+                            </div>
+                            <div class="input-group">
+                                <label for="signupEmail">Email</label>
+                                <input type="email" id="signupEmail" name="signupEmail" placeholder="your@email.com" required />
+                                <small>We'll use this for your account</small>
+                            </div>
+                            <div class="input-group">
+                                <label for="signupPassword">Password</label>
+                                <input type="password" id="signupPassword" name="signupPassword" placeholder="Create a password" required minlength="6" />
+                                <small>At least 6 characters</small>
+                            </div>
+                            <div class="input-group">
+                                <label for="signupConfirmPassword">Confirm Password</label>
+                                <input type="password" id="signupConfirmPassword" name="signupConfirmPassword" placeholder="Confirm your password" required />
+                                <small>Must match your password</small>
+                            </div>
+                            <button type="submit" class="auth-action-btn signup-btn">
+                                <span class="btn-icon">🚀</span>
+                                Create Account
+                            </button>
+                            <div id="signupMessage" class="message hidden"></div>
+                        </form>
+                        <div class="auth-switch">
+                            <p>Already have an account? <a href="#" id="showLogin">Login here</a></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="features-section">
+                <h3>✨ Why Join PushTalk?</h3>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🎤</div>
+                        <h4>Push-to-Talk</h4>
+                        <p>Crystal-clear voice messages with instant transmission</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🔒</div>
+                        <h4>Secure Rooms</h4>
+                        <p>PIN-protected rooms for private team communication</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📱</div>
+                        <h4>Multi-Device</h4>
+                        <p>Works on phones, tablets, and computers seamlessly</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">⚡</div>
+                        <h4>Real-Time</h4>
+                        <p>Near-instant audio with minimal latency</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="auth.js"></script>
+</body>
+</html>
+ 

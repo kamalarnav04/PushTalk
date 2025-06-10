@@ -8,11 +8,21 @@
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <div class="container">
-        <!-- Header Section -->
+    <div class="container">        <!-- Header Section -->
         <header class="header">
-            <h1>🎙️ PushTalk</h1>
-            <p>Create or join a voice communication room to start talking with your team instantly</p>
+            <div class="header-content">
+                <div class="title-section">
+                    <h1>🎙️ PushTalk</h1>
+                    <p>Create or join a voice communication room to start talking with your team instantly</p>
+                </div>
+                <div class="user-profile">
+                    <div class="profile-info">
+                        <span class="user-icon">👤</span>
+                        <span class="username" id="userDisplayName">User</span>
+                    </div>
+                    <button id="logoutBtn" class="logout-btn">🚪 Logout</button>
+                </div>
+            </div>
         </header>
 
         <!-- Main Content -->

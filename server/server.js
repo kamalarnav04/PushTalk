@@ -54,7 +54,7 @@ const io = socketIo(server, {
 const PORT = process.env.PORT || 3000;
 
 // Room management
-const rooms = new Map(); // roomName -> { pin, clients: Set() }
+const rooms = new Map(); // roomName -> { pin, clients: Map(socketId -> {username, joinedAt}) }
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, '../public')));
@@ -63,9 +63,18 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.get('/api/rooms', (req, res) => {
     const roomList = [];
     rooms.forEach((room, roomName) => {
+        const participants = [];
+        room.clients.forEach((userInfo, socketId) => {
+            participants.push({
+                username: userInfo.username,
+                joinedAt: userInfo.joinedAt
+            });
+        });
+        
         roomList.push({
             name: roomName,
             clientCount: room.clients.size,
+            participants: participants,
             createdAt: room.createdAt,
             hasGracePeriod: room.creatorGracePeriod || false,
             isTemporary: room.isTemporary || false
@@ -79,7 +88,7 @@ app.get('/api/rooms', (req, res) => {
 });
 
 // Store connected clients information
-const connectedClients = new Map();
+const connectedClients = new Map(); // socketId -> {id, connectedAt, currentRoom, username}
 
 /**
  * Socket.IO connection handling
@@ -90,11 +99,12 @@ io.on('connection', (socket) => {
     connectedClients.set(socket.id, {
         id: socket.id,
         connectedAt: new Date(),
-        currentRoom: null
+        currentRoom: null,
+        username: null
     });
 
     // Send current client count to all clients
-    io.emit('client-count', connectedClients.size);    /**
+    io.emit('client-count', connectedClients.size);/**
      * Handle room creation
      */
     socket.on('create-room', (data) => {
@@ -110,11 +120,10 @@ io.on('connection', (socket) => {
             });
             return;
         }
-        
-        // Create new room with extended lifetime for creator to join
+          // Create new room with extended lifetime for creator to join
         rooms.set(roomName, {
             pin: pin,
-            clients: new Set(),
+            clients: new Map(), // Change from Set to Map
             createdAt: new Date(),
             createdBy: socket.id,
             isTemporary: true, // Mark as temporary until someone joins
@@ -139,8 +148,8 @@ io.on('connection', (socket) => {
      * Handle room joining
      */
     socket.on('join-room', (data) => {
-        const { roomName, pin } = data;
-        console.log(`🚪 Client ${socket.id} attempting to join room "${roomName}"`);
+        const { roomName, pin, username } = data;
+        console.log(`🚪 Client ${socket.id} (${username}) attempting to join room "${roomName}"`);
         
         // Check if room exists
         if (!rooms.has(roomName)) {
@@ -164,8 +173,11 @@ io.on('connection', (socket) => {
             return;
         }
         
-        // Add client to room
-        room.clients.add(socket.id);
+        // Add client to room with username
+        room.clients.set(socket.id, {
+            username: username,
+            joinedAt: new Date().toISOString()
+        });
         
         // Clear grace period flags when someone joins
         if (room.creatorGracePeriod) {
@@ -178,38 +190,54 @@ io.on('connection', (socket) => {
         const clientInfo = connectedClients.get(socket.id);
         if (clientInfo) {
             clientInfo.currentRoom = roomName;
+            clientInfo.username = username;
         }
         
-        console.log(`✅ Client ${socket.id} joined room "${roomName}" (${room.clients.size} total)`);
+        // Get list of participants for the room
+        const participants = [];
+        room.clients.forEach((userInfo, socketId) => {
+            participants.push({
+                socketId: socketId,
+                username: userInfo.username,
+                joinedAt: userInfo.joinedAt
+            });
+        });
+        
+        console.log(`✅ Client ${socket.id} (${username}) joined room "${roomName}" (${room.clients.size} total)`);
         socket.emit('room-joined', {
             roomName: roomName,
             pin: pin,
-            clientCount: room.clients.size
+            clientCount: room.clients.size,
+            participants: participants
         });
         
-        // Notify other clients in the room
-        room.clients.forEach(clientId => {
+        // Notify other clients in the room about new user
+        room.clients.forEach((userInfo, clientId) => {
             if (clientId !== socket.id) {
                 const clientSocket = io.sockets.sockets.get(clientId);
                 if (clientSocket) {
                     clientSocket.emit('room-update', {
                         type: 'user-joined',
                         roomName: roomName,
-                        clientCount: room.clients.size
+                        clientCount: room.clients.size,
+                        participants: participants,
+                        newUser: {
+                            username: username,
+                            joinedAt: new Date().toISOString()
+                        }
                     });
                 }
             }
         });
-    });
-
-    /**
+    });    /**
      * Handle leaving room
      */
     socket.on('leave-room', () => {
         const clientInfo = connectedClients.get(socket.id);
         if (clientInfo && clientInfo.currentRoom) {
             const roomName = clientInfo.currentRoom;
-            console.log(`🚪 Client ${socket.id} leaving room "${roomName}"`);
+            const username = clientInfo.username;
+            console.log(`🚪 Client ${socket.id} (${username}) leaving room "${roomName}"`);
             
             const room = rooms.get(roomName);
             if (room) {
@@ -220,14 +248,28 @@ io.on('connection', (socket) => {
                     rooms.delete(roomName);
                     console.log(`🗑️ Room "${roomName}" deleted (empty)`);
                 } else {
+                    // Get updated participants list
+                    const participants = [];
+                    room.clients.forEach((userInfo, socketId) => {
+                        participants.push({
+                            socketId: socketId,
+                            username: userInfo.username,
+                            joinedAt: userInfo.joinedAt
+                        });
+                    });
+                    
                     // Notify remaining clients
-                    room.clients.forEach(clientId => {
+                    room.clients.forEach((userInfo, clientId) => {
                         const clientSocket = io.sockets.sockets.get(clientId);
                         if (clientSocket) {
                             clientSocket.emit('room-update', {
                                 type: 'user-left',
                                 roomName: roomName,
-                                clientCount: room.clients.size
+                                clientCount: room.clients.size,
+                                participants: participants,
+                                leftUser: {
+                                    username: username
+                                }
                             });
                         }
                     });
@@ -235,8 +277,36 @@ io.on('connection', (socket) => {
             }
             
             clientInfo.currentRoom = null;
+            clientInfo.username = null;
         }
     });    /**
+     * Handle request for room participants
+     */
+    socket.on('get-room-participants', () => {
+        const clientInfo = connectedClients.get(socket.id);
+        if (clientInfo && clientInfo.currentRoom) {
+            const roomName = clientInfo.currentRoom;
+            const room = rooms.get(roomName);
+            if (room) {
+                const participants = [];
+                room.clients.forEach((userInfo, socketId) => {
+                    participants.push({
+                        socketId: socketId,
+                        username: userInfo.username,
+                        joinedAt: userInfo.joinedAt,
+                        isCurrentUser: socketId === socket.id
+                    });
+                });
+                
+                socket.emit('room-participants', {
+                    roomName: roomName,
+                    participants: participants
+                });
+            }
+        }
+    });
+
+    /**
      * Handle incoming audio data from clients
      * Broadcasts the audio to all other connected clients in the same room
      */
@@ -255,15 +325,15 @@ io.on('connection', (socket) => {
         }
         
         console.log(`🎤 Audio received from ${socket.id} in room "${roomName}", broadcasting to ${room.clients.size - 1} others...`);
-        
-        // Broadcast audio to all clients in the same room except the sender
-        room.clients.forEach(clientId => {
+          // Broadcast audio to all clients in the same room except the sender
+        room.clients.forEach((userInfo, clientId) => {
             if (clientId !== socket.id) {
                 const clientSocket = io.sockets.sockets.get(clientId);
                 if (clientSocket) {
                     clientSocket.emit('audio-data', {
                         audio: data.audio,
                         senderId: socket.id,
+                        senderUsername: connectedClients.get(socket.id)?.username || 'Unknown',
                         timestamp: Date.now()
                     });
                 }
@@ -289,10 +359,10 @@ io.on('connection', (socket) => {
         console.log(`📴 Client disconnected: ${socket.id}`);
         
         const clientInfo = connectedClients.get(socket.id);
-        
-        // Remove client from their room if they were in one
+          // Remove client from their room if they were in one
         if (clientInfo && clientInfo.currentRoom) {
             const roomName = clientInfo.currentRoom;
+            const username = clientInfo.username;
             const room = rooms.get(roomName);
             if (room) {
                 room.clients.delete(socket.id);
@@ -314,16 +384,30 @@ io.on('connection', (socket) => {
                         console.log(`⏰ Room "${roomName}" is empty but still within grace period`);
                     }
                 } else {
-                    console.log(`🚪 Client ${socket.id} removed from room "${roomName}" (${room.clients.size} remaining)`);
+                    console.log(`🚪 Client ${socket.id} (${username}) removed from room "${roomName}" (${room.clients.size} remaining)`);
+                    
+                    // Get updated participants list
+                    const participants = [];
+                    room.clients.forEach((userInfo, socketId) => {
+                        participants.push({
+                            socketId: socketId,
+                            username: userInfo.username,
+                            joinedAt: userInfo.joinedAt
+                        });
+                    });
                     
                     // Notify remaining clients in the room
-                    room.clients.forEach(clientId => {
+                    room.clients.forEach((userInfo, clientId) => {
                         const clientSocket = io.sockets.sockets.get(clientId);
                         if (clientSocket) {
                             clientSocket.emit('room-update', {
                                 type: 'user-disconnected',
                                 roomName: roomName,
-                                clientCount: room.clients.size
+                                clientCount: room.clients.size,
+                                participants: participants,
+                                disconnectedUser: {
+                                    username: username
+                                }
                             });
                         }
                     });

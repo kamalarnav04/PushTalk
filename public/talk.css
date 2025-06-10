@@ -84,6 +84,32 @@ body {
     box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
+.user-profile-section {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.user-profile-section .profile-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(102, 126, 234, 0.1);
+    padding: 10px 16px;
+    border-radius: 20px;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.user-profile-section .user-icon {
+    font-size: 1.3rem;
+}
+
+.user-profile-section .username {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 1rem;
+}
+
 .status-bar {
     display: flex;
     justify-content: space-between;
@@ -379,6 +405,208 @@ body {
     font-size: 0.95rem;
 }
 
+/* Room Participants Styles */
+.room-participants {
+    margin-top: 25px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.participants-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.participants-header h3 {
+    margin: 0;
+    color: #4a5568;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.participants-toggle-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.participants-toggle-btn:hover {
+    background: linear-gradient(135deg, #5a67d8, #6b46c1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.participants-count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.participants-list {
+    max-height: 300px;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+}
+
+.participants-list.hidden {
+    display: none;
+}
+
+.participant-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.participant-item:hover {
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.participant-item.current-user {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.participant-avatar {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.participant-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.participant-name {
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.you-label {
+    background: #10b981;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.participant-joined {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+.participant-status {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.participant-status.online {
+    background: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+    animation: pulse-dot 2s infinite;
+}
+
+.no-participants {
+    text-align: center;
+    color: #9ca3af;
+    font-style: italic;
+    padding: 20px;
+}
+
+/* Notification Styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 15px 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    max-width: 350px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notification.info {
+    border-left: 4px solid #3b82f6;
+}
+
+.notification.warning {
+    border-left: 4px solid #f59e0b;
+}
+
+.notification.success {
+    border-left: 4px solid #10b981;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.notification-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.notification-text {
+    color: #4a5568;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {
@@ -392,6 +620,11 @@ body {
     .room-details {
         flex-direction: column;
         gap: 10px;
+    }
+    
+    .user-profile-section .profile-info {
+        padding: 8px 14px;
+        font-size: 0.9rem;
     }
     
     .talk-button {
@@ -433,6 +666,49 @@ body {
     .step-content p {
         font-size: 0.9rem;
     }
+    
+    /* Participants responsive styles */
+    .participants-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .participants-toggle-btn {
+        justify-content: center;
+        padding: 10px 16px;
+    }
+    
+    .participant-item {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .participant-avatar {
+        width: 35px;
+        height: 35px;
+        font-size: 1.3rem;
+    }
+    
+    .participant-name {
+        font-size: 0.9rem;
+    }
+    
+    .participant-joined {
+        font-size: 0.75rem;
+    }
+    
+    /* Notification responsive styles */
+    .notification {
+        right: 15px;
+        left: 15px;
+        max-width: none;
+        transform: translateY(-100px);
+    }
+    
+    .notification.show {
+        transform: translateY(0);
+    }
 }
 
 @media (max-width: 480px) {
@@ -452,6 +728,47 @@ body {
     
     .instructions {
         padding: 20px;
+    }
+    
+    .room-participants {
+        padding: 15px;
+    }
+    
+    .participants-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .participants-toggle-btn {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+    
+    .participant-item {
+        padding: 8px;
+        margin-bottom: 6px;
+    }
+    
+    .participant-avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 1.1rem;
+    }
+    
+    .notification {
+        padding: 12px 15px;
+        border-radius: 10px;
+    }
+    
+    .notification-content {
+        gap: 8px;
+    }
+    
+    .notification-icon {
+        font-size: 1.1rem;
+    }
+    
+    .notification-text {
+        font-size: 0.9rem;
     }
 }
 

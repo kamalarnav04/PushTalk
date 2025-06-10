@@ -3,8 +3,7 @@
  * Handles audio recording, playback, and real-time communication
  */
 
-class WalkieTalkieApp {
-    constructor() {
+class WalkieTalkieApp {    constructor() {
         // Socket.IO connection
         this.socket = null;
         
@@ -13,16 +12,16 @@ class WalkieTalkieApp {
         this.audioStream = null;
         this.isRecording = false;
         this.audioChunks = [];
+        this.currentUser = null;
         
         // Audio playback
         this.audioContext = null;
         this.audioAnalyser = null;
         this.volumeDataArray = null;
-        
-        // Room information
+          // Room information
         this.currentRoom = null;
-        
-        // UI elements
+        this.roomParticipants = [];
+          // UI elements
         this.elements = {
             talkButton: document.getElementById('talkButton'),
             recordingStatus: document.getElementById('recordingStatus'),
@@ -32,9 +31,13 @@ class WalkieTalkieApp {
             volumeLevel: document.getElementById('volumeLevel'),
             playbackAudio: document.getElementById('playbackAudio'),
             roomName: document.getElementById('roomName'),
-            roomPin: document.getElementById('roomPin'),
-            leaveRoomBtn: document.getElementById('leaveRoomBtn'),
-            networkNotice: document.getElementById('networkNotice')
+            roomPin: document.getElementById('roomPin'),            leaveRoomBtn: document.getElementById('leaveRoomBtn'),
+            networkNotice: document.getElementById('networkNotice'),
+            userDisplayName: document.getElementById('userDisplayName'),
+            showParticipantsBtn: document.getElementById('showParticipantsBtn'),
+            participantsList: document.getElementById('participantsList'),
+            participantsCount: document.getElementById('participantsCount'),
+            speakersList: document.getElementById('speakersList')
         };
         
         // Configuration
@@ -55,14 +58,15 @@ class WalkieTalkieApp {
         
         // Initialize the application
         this.init();
-    }
-
-    /**
+    }    /**
      * Initialize the walkie-talkie application
      */
     async init() {
         try {
             console.log('🎙️ Initializing walkie-talkie...');
+            
+            // Check authentication
+            this.checkAuthentication();
             
             // Check for room data
             this.loadRoomData();
@@ -83,6 +87,34 @@ class WalkieTalkieApp {
         } catch (error) {
             console.error('❌ Walkie-talkie initialization failed:', error);
             this.showNetworkNotice();
+        }
+    }
+
+    /**
+     * Check if user is authenticated
+     */
+    checkAuthentication() {
+        const currentUser = localStorage.getItem('currentUser');
+        if (!currentUser) {
+            // User not logged in, redirect to auth page
+            alert('Please log in to access the talk page.');
+            window.location.href = 'auth.html';
+            return;
+        }
+        
+        try {
+            this.currentUser = JSON.parse(currentUser);
+            
+            // Display username in the header
+            if (this.elements.userDisplayName) {
+                this.elements.userDisplayName.textContent = this.currentUser.username;
+            }
+            
+            console.log('🔐 User authenticated:', this.currentUser.username);
+        } catch (error) {
+            console.error('⚠️ Invalid user data, redirecting to auth');
+            localStorage.removeItem('currentUser');
+            window.location.href = 'auth.html';
         }
     }
 
@@ -122,12 +154,12 @@ class WalkieTalkieApp {
         this.socket.on('connect', () => {
             console.log('📡 Connected to server');
             this.updateConnectionStatus(true);
-            
-            // Join the room
-            if (this.currentRoom) {
+              // Join the room
+            if (this.currentRoom && this.currentUser) {
                 this.socket.emit('join-room', {
                     roomName: this.currentRoom.roomName,
-                    pin: this.currentRoom.pin
+                    pin: this.currentRoom.pin,
+                    username: this.currentUser.username
                 });
             }
         });
@@ -142,15 +174,47 @@ class WalkieTalkieApp {
         this.socket.on('client-count', (count) => {
             this.elements.clientCount.textContent = count;
         });
-        
-        // Incoming audio data
+          // Incoming audio data
         this.socket.on('audio-data', (data) => {
             this.playReceivedAudio(data.audio);
-        });
-          // Room joined successfully
+            
+            // Show who is speaking
+            if (data.senderUsername) {
+                this.showSpeakingIndicator(data.senderUsername);
+            }
+        });// Room joined successfully
         this.socket.on('room-joined', (roomData) => {
             console.log('🏠 Joined room:', roomData);
             this.updateConnectionStatus(true, `Connected to room "${roomData.roomName}"`);
+            
+            // Store room participants
+            this.roomParticipants = roomData.participants || [];
+            this.updateParticipantsList();
+        });
+        
+        // Room updates (user joined/left)
+        this.socket.on('room-update', (update) => {
+            console.log('🔄 Room update:', update);
+            
+            if (update.participants) {
+                this.roomParticipants = update.participants;
+                this.updateParticipantsList();
+            }
+            
+            // Show notification based on update type
+            if (update.type === 'user-joined' && update.newUser) {
+                this.showNotification(`${update.newUser.username} joined the room`, 'info');
+            } else if (update.type === 'user-left' && update.leftUser) {
+                this.showNotification(`${update.leftUser.username} left the room`, 'info');
+            } else if (update.type === 'user-disconnected' && update.disconnectedUser) {
+                this.showNotification(`${update.disconnectedUser.username} disconnected`, 'warning');
+            }
+        });
+        
+        // Room participants response
+        this.socket.on('room-participants', (data) => {
+            this.roomParticipants = data.participants || [];
+            this.updateParticipantsList();
         });
         
         // Room join/error handling
@@ -193,9 +257,13 @@ class WalkieTalkieApp {
         
         // Prevent context menu on talk button
         this.elements.talkButton.addEventListener('contextmenu', (e) => e.preventDefault());
-        
-        // Leave room button
+          // Leave room button
         this.elements.leaveRoomBtn.addEventListener('click', () => this.leaveRoom());
+        
+        // Participants toggle button
+        if (this.elements.showParticipantsBtn) {
+            this.elements.showParticipantsBtn.addEventListener('click', () => this.toggleParticipantsList());
+        }
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
@@ -441,6 +509,140 @@ class WalkieTalkieApp {
         
         // Redirect to landing page
         window.location.href = 'landing.html';
+    }    /**
+     * Toggle participants list visibility
+     */
+    toggleParticipantsList() {
+        const participantsList = this.elements.participantsList;
+        const toggleText = this.elements.showParticipantsBtn.querySelector('.toggle-text');
+        
+        if (participantsList.classList.contains('hidden')) {
+            // Show participants list
+            participantsList.classList.remove('hidden');
+            toggleText.textContent = 'Hide';
+            
+            // Request updated participants from server
+            if (this.socket && this.socket.connected) {
+                this.socket.emit('get-room-participants');
+            }
+        } else {
+            // Hide participants list
+            participantsList.classList.add('hidden');
+            toggleText.textContent = 'Show';
+        }
+    }
+
+    /**
+     * Update participants list display
+     */
+    updateParticipantsList() {
+        if (!this.elements.participantsList || !this.elements.participantsCount) return;
+        
+        const count = this.roomParticipants.length;
+        this.elements.participantsCount.textContent = count;
+        
+        if (count === 0) {
+            this.elements.participantsList.innerHTML = '<div class="no-participants">No participants in room</div>';
+            return;
+        }
+        
+        // Create participants list HTML
+        const participantsHTML = this.roomParticipants.map(participant => {
+            const joinedTime = new Date(participant.joinedAt).toLocaleTimeString();
+            const isCurrentUser = participant.isCurrentUser || (this.currentUser && participant.username === this.currentUser.username);
+            
+            return `
+                <div class="participant-item ${isCurrentUser ? 'current-user' : ''}">
+                    <div class="participant-avatar">👤</div>
+                    <div class="participant-info">
+                        <div class="participant-name">
+                            ${participant.username}
+                            ${isCurrentUser ? '<span class="you-label">(You)</span>' : ''}
+                        </div>
+                        <div class="participant-joined">Joined: ${joinedTime}</div>
+                    </div>
+                    <div class="participant-status online">●</div>
+                </div>
+            `;
+        }).join('');
+        
+        this.elements.participantsList.innerHTML = participantsHTML;
+    }
+
+    /**
+     * Show speaking indicator for a user
+     */
+    showSpeakingIndicator(username) {
+        // Update active speakers list
+        if (this.elements.speakersList) {
+            const existingSpeaker = this.elements.speakersList.querySelector(`[data-username="${username}"]`);
+            
+            if (!existingSpeaker) {
+                // Remove "no speakers" message
+                const noSpeakers = this.elements.speakersList.querySelector('.no-speakers');
+                if (noSpeakers) {
+                    noSpeakers.style.display = 'none';
+                }
+                
+                // Add speaker indicator
+                const speakerElement = document.createElement('div');
+                speakerElement.className = 'speaker-item talking';
+                speakerElement.setAttribute('data-username', username);
+                speakerElement.innerHTML = `
+                    <div class="speaker-status"></div>
+                    <span class="speaker-name">${username}</span>
+                    <span class="speaking-indicator">🎤</span>
+                `;
+                
+                this.elements.speakersList.appendChild(speakerElement);
+                
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    if (speakerElement.parentNode) {
+                        speakerElement.remove();
+                        
+                        // Show "no speakers" if list is empty
+                        if (this.elements.speakersList.children.length === 1) {
+                            const noSpeakers = this.elements.speakersList.querySelector('.no-speakers');
+                            if (noSpeakers) {
+                                noSpeakers.style.display = 'block';
+                            }
+                        }
+                    }
+                }, 3000);
+            }
+        }
+    }
+
+    /**
+     * Show notification to user
+     */
+    showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span class="notification-icon">${type === 'info' ? 'ℹ️' : type === 'warning' ? '⚠️' : '✅'}</span>
+                <span class="notification-text">${message}</span>
+            </div>
+        `;
+        
+        // Add to page
+        document.body.appendChild(notification);
+        
+        // Show with animation
+        setTimeout(() => notification.classList.add('show'), 100);
+        
+        // Remove after 4 seconds
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }, 4000);
     }
 
     /**

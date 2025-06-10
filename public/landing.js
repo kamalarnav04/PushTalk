@@ -10,16 +10,16 @@ class RoomManager {
         
         // Current room information
         this.currentRoom = null;
-        
-        // UI elements
+          // UI elements
         this.elements = {
             createRoomForm: document.getElementById('createRoomForm'),
             joinRoomForm: document.getElementById('joinRoomForm'),
             createMessage: document.getElementById('createMessage'),
             joinMessage: document.getElementById('joinMessage'),
+            userDisplayName: document.getElementById('userDisplayName'),
+            logoutBtn: document.getElementById('logoutBtn')
         };
-        
-        // Initialize the room manager
+          // Initialize the room manager
         this.init();
     }
 
@@ -29,6 +29,9 @@ class RoomManager {
     async init() {
         try {
             console.log('Initializing room manager...');
+            
+            // Check authentication
+            this.checkAuthentication();
             
             // Initialize Socket.IO connection
             this.initSocket();
@@ -40,6 +43,50 @@ class RoomManager {
         } catch (error) {
             console.error('❌ Room manager initialization failed:', error);
         }
+    }
+
+    /**
+     * Check if user is authenticated
+     */
+    checkAuthentication() {
+        const currentUser = localStorage.getItem('currentUser');
+        if (!currentUser) {
+            // User not logged in, redirect to auth page
+            window.location.href = 'auth.html';
+            return;
+        }
+        
+        try {
+            this.currentUser = JSON.parse(currentUser);
+            
+            // Display username in the header
+            if (this.elements.userDisplayName) {
+                this.elements.userDisplayName.textContent = this.currentUser.username;
+            }
+            
+            console.log('🔐 User authenticated:', this.currentUser.username);
+        } catch (error) {
+            console.error('⚠️ Invalid user data, redirecting to auth');
+            localStorage.removeItem('currentUser');
+            window.location.href = 'auth.html';
+        }
+    }
+
+    /**
+     * Handle user logout
+     */
+    handleLogout() {
+        // Clear user data
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('currentRoom');
+        
+        // Disconnect socket if connected
+        if (this.socket) {
+            this.socket.disconnect();
+        }
+        
+        // Redirect to auth page
+        window.location.href = 'auth.html';
     }
 
     /**
@@ -119,6 +166,14 @@ class RoomManager {
         } else {
             console.error('❌ Join room form not found!');
         }
+        
+        // Logout button
+        if (this.elements.logoutBtn) {
+            this.elements.logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleLogout();
+            });
+        }
     }/**
      * Handle room creation
      */
@@ -181,11 +236,11 @@ class RoomManager {
         // Set loading state
         this.setFormLoading('joinRoomForm', true);
         this.hideMessage('joinMessage');
-        
-        // Send join room request
+          // Send join room request
         this.socket.emit('join-room', {
             roomName: roomName,
-            pin: pin
+            pin: pin,
+            username: this.currentUser.username
         });
         
         console.log(`🚪 Joining room "${roomName}" with PIN ${pin}`);

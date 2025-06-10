@@ -35,10 +35,16 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-    </style>
-    <script>
-        // Redirect to landing page
-        window.location.replace('landing.html');
+    </style>    <script>
+        // Check if user is logged in, if not redirect to auth page
+        const currentUser = localStorage.getItem('currentUser');
+        if (currentUser) {
+            // User is logged in, redirect to landing page
+            window.location.replace('landing.html');
+        } else {
+            // User is not logged in, redirect to auth page
+            window.location.replace('auth.html');
+        }
     </script>
 </head>
 <body>

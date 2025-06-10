@@ -8,14 +8,19 @@
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <div class="container">
-        <!-- Header Section -->
+    <div class="container">        <!-- Header Section -->
         <header class="header">
             <div class="room-info">
                 <h1>🎙️ <span id="roomName">Room Name</span></h1>
                 <div class="room-details">
                     <span class="room-pin">PIN: <span id="roomPin">****</span></span>
                     <button id="leaveRoomBtn" class="leave-room-btn">🚪 Leave Room</button>
+                </div>
+            </div>
+            <div class="user-profile-section">
+                <div class="profile-info">
+                    <span class="user-icon">👤</span>
+                    <span class="username" id="userDisplayName">User</span>
                 </div>
             </div>
             <div class="status-bar">
@@ -59,13 +64,25 @@
                     <div class="volume-bar">
                         <div id="volumeLevel" class="volume-fill"></div>
                     </div>
-                </div>
-
-                <!-- Active Speakers -->
+                </div>                <!-- Active Speakers -->
                 <div class="active-speakers" id="activeSpeakers">
                     <h3>🗣️ Active Speakers</h3>
                     <div class="speakers-list" id="speakersList">
                         <div class="no-speakers">No one is talking</div>
+                    </div>
+                </div>
+
+                <!-- Room Participants -->
+                <div class="room-participants">
+                    <div class="participants-header">
+                        <h3>👥 Room Participants</h3>
+                        <button id="showParticipantsBtn" class="participants-toggle-btn">
+                            <span class="participants-count" id="participantsCount">0</span>
+                            <span class="toggle-text">Show</span>
+                        </button>
+                    </div>
+                    <div class="participants-list hidden" id="participantsList">
+                        <div class="no-participants">Loading participants...</div>
                     </div>
                 </div>
             </div>
